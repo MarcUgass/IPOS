@@ -56,7 +56,7 @@ def draw_image(c, obj):
 
 
 def generate_pdf(json_file, output_file="output.pdf"):
-    with open(json_file, "r") as f:
+    with open(json_file, "r", encoding='utf-8') as f:
         data = json.load(f)
 
     c = canvas.Canvas(output_file, pagesize=A4)

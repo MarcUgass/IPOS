@@ -1,19 +1,127 @@
 {
-    "0":
-    {
+    "0": {
         "type": "text",
-        "text": "Hello, World!",
+        "text": "Exploring new worlds.",
         "font": "Helvetica",
-        "size": 12,
-        "color": [0, 0, 0],
-        "position": [2, 2, 15, 5],
+        "size": 14,
+        "color": [10, 10, 10],
+        "position": [10, 10, 190, 40],
         "align": "left",
         "valign": "top"
     },
-    "1":
-    {
+    "1": {
         "type": "image",
-        "src": "../Images/duck.png",
-        "position": [50, 60, 300, 200]   
+        "src": "imagesGEN/12.jpg",
+        "position": [200, 10, 350, 110]
+    },
+    "2": {
+        "type": "text",
+        "text": "Innovation starts here.",
+        "font": "Courier-Bold",
+        "size": 12,
+        "color": [50, 50, 150],
+        "position": [10, 50, 180, 75],
+        "align": "center",
+        "valign": "top"
+    },
+    "3": {
+        "type": "image",
+        "src": "imagesGEN/8.jpg",
+        "position": [10, 90, 170, 180]
+    },
+    "4": {
+        "type": "text",
+        "text": "Dream. Code. Repeat.",
+        "font": "Times-Italic",
+        "size": 16,
+        "color": [200, 50, 50],
+        "position": [180, 120, 350, 155],
+        "align": "right",
+        "valign": "bottom"
+    },
+    "5": {
+        "type": "text",
+        "text": "The best way to predict the future is to invent it.",
+        "font": "Helvetica",
+        "size": 12,
+        "color": [0, 0, 0],
+        "position": [10, 190, 260, 220],
+        "align": "left",
+        "valign": "top"
+    },
+    "6": {
+        "type": "text",
+        "text": "Sometimes it’s the people no one imagines anything of who do the things that no one can imagine.",
+        "font": "Times-Roman",
+        "size": 10,
+        "color": [40, 40, 40],
+        "position": [10, 230, 290, 280],
+        "align": "left",
+        "valign": "top"
+    },
+    "7": {
+        "type": "image",
+        "src": "imagesGEN/17.jpg",
+        "position": [300, 190, 480, 290]
+    },
+    "8": {
+        "type": "text",
+        "text": "Knowledge is power. France is bacon.",
+        "font": "Courier",
+        "size": 14,
+        "color": [80, 0, 100],
+        "position": [300, 295, 480, 325],
+        "align": "center",
+        "valign": "top"
+    },
+    "9": {
+        "type": "text",
+        "text": "Creativity is intelligence having fun.",
+        "font": "Helvetica-Oblique",
+        "size": 12,
+        "color": [10, 100, 150],
+        "position": [300, 330, 480, 360],
+        "align": "left",
+        "valign": "top"
+    },
+    "10": {
+        "type": "image",
+        "src": "imagesGEN/42.jpg",
+        "position": [10, 290, 210, 390]
+    },
+    "11": {
+        "type": "text",
+        "text": "What we know is a drop, what we don't know is an ocean.",
+        "font": "Times-Italic",
+        "size": 11,
+        "color": [0, 80, 80],
+        "position": [220, 365, 470, 400],
+        "align": "left",
+        "valign": "top"
+    },
+    "12": {
+        "type": "text",
+        "text": "Any sufficiently advanced technology is indistinguishable from magic.",
+        "font": "Helvetica",
+        "size": 10,
+        "color": [100, 20, 100],
+        "position": [10, 400, 310, 440],
+        "align": "left",
+        "valign": "top"
+    },
+    "13": {
+        "type": "image",
+        "src": "imagesGEN/91.jpg",
+        "position": [320, 405, 480, 505]
+    },
+    "14": {
+        "type": "text",
+        "text": "Keep calm and code on.",
+        "font": "Courier-Bold",
+        "size": 16,
+        "color": [20, 20, 20],
+        "position": [320, 510, 500, 550],
+        "align": "right",
+        "valign": "bottom"
     }
 }
