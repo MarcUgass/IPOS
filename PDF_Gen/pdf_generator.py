@@ -3,13 +3,31 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.colors import Color
+
+
+from reportlab.platypus import Paragraph, Frame
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+
+
 import os
 
+PAGE_WIDTH, PAGE_HEIGHT = A4
+
+
+def flip_y(y):
+    return PAGE_HEIGHT - y
 
 def draw_text(c, obj):
+    from reportlab.platypus import SimpleDocTemplate
+
     x1, y1, x2, y2 = obj["position"]
+    y1, y2 = flip_y(y1), flip_y(y2)
+    if y1 < y2:
+        y1, y2 = y2, y1  # Ensure y1 is top, y2 is bottom
+
     width = x2 - x1
-    height = y2 - y1
+    height = y1 - y2
 
     text = obj.get("text", "")
     font = obj.get("font", "Helvetica")
@@ -18,32 +36,36 @@ def draw_text(c, obj):
     align = obj.get("align", "left")
     valign = obj.get("valign", "top")
 
-    c.setFont(font, size)
-    c.setFillColor(Color(color[0], color[1], color[2]))
+    # Convert align to reportlab constants
+    align_map = {"left": TA_LEFT, "center": TA_CENTER, "right": TA_RIGHT}
+    text_align = align_map.get(align, TA_LEFT)
 
-    # Adjust text x position based on alignment
-    if align == "center":
-        text_width = c.stringWidth(text, font, size)
-        tx = x1 + (width - text_width) / 2
-    elif align == "right":
-        text_width = c.stringWidth(text, font, size)
-        tx = x2 - text_width
-    else:  # left
-        tx = x1
+    # Create a style for the paragraph
+    style = ParagraphStyle(
+        name="CustomStyle",
+        fontName=font,
+        fontSize=size,
+        leading=size * 1.2,
+        textColor=Color(color[0], color[1], color[2]),
+        alignment=text_align,
+    )
 
-    # Adjust text y position based on vertical alignment
-    if valign == "middle":
-        ty = y1 + (height - size) / 2
-    elif valign == "bottom":
-        ty = y2 - size
-    else:  # top
-        ty = y1 + height - size
+    paragraph = Paragraph(text, style)
 
-    c.drawString(tx, ty, text)
+    # Create a frame to contain the paragraph
+    frame = Frame(x1, y2, width, height, showBoundary=0)
+
+    # Use a list for flowables
+    story = [paragraph]
+
+    # Draw on canvas
+    frame.addFromList(story, c)
 
 
 def draw_image(c, obj):
     x1, y1, x2, y2 = obj["position"]
+    y1, y2 = flip_y(y1), flip_y(y2)
+
     width = x2 - x1
     height = y2 - y1
     path = obj["src"]
@@ -81,5 +103,6 @@ if __name__ == "__main__":
     parser.add_argument("json_file", help="Path to the JSON input file")
     parser.add_argument("--output", default="output.pdf", help="Path to the output PDF file")
     args = parser.parse_args()
+    print(PAGE_WIDTH, PAGE_HEIGHT)
 
     generate_pdf(args.json_file, args.output)

@@ -2,18 +2,18 @@
     "0":
     {
         "type": "text",
-        "text": "Hello, World!",
+        "text": "Hello, World!,Hello, World!,Hello, World!,",
         "font": "Helvetica",
         "size": 12,
         "color": [0, 0, 0],
-        "position": [2, 2, 15, 5],
+        "position": [200, 200, 300, 300],
         "align": "left",
         "valign": "top"
     },
     "1":
     {
         "type": "image",
-        "src": "../Images/duck.png",
-        "position": [50, 60, 300, 200]   
+        "src": "imagesGEN/1.jpg",
+        "position": [0, 0, 200, 500]   
     }
 }
