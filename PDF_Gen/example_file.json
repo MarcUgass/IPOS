@@ -6,14 +6,14 @@
         "font": "Helvetica",
         "size": 12,
         "color": [0, 0, 0],
-        "position": [50, 10, 300, 50],
+        "position": [2, 2, 15, 5],
         "align": "left",
         "valign": "top"
     },
     "1":
     {
         "type": "image",
-        "src": "path/to/image.jpg",
+        "src": "../Images/duck.png",
         "position": [50, 60, 300, 200]   
     }
 }
