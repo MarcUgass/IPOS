@@ -1,0 +1,19 @@
+{
+    "0":
+    {
+        "type": "text",
+        "text": "Hello, World!",
+        "font": "Helvetica",
+        "size": 12,
+        "color": [0, 0, 0],
+        "position": [50, 10, 300, 50],
+        "align": "left",
+        "valign": "top"
+    },
+    "1":
+    {
+        "type": "image",
+        "src": "path/to/image.jpg",
+        "position": [50, 60, 300, 200]   
+    }
+}
