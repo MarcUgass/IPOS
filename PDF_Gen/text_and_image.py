@@ -25,7 +25,7 @@ FONT_WIDTH_ESTIMATES = {
 }
 
 # Load Don Quijote text
-with open("el_quijote.txt", "r", encoding="utf-8") as f:
+with open("el_quijote2.txt", "r", encoding="utf-8") as f:
     DONQUIJOTE_TEXT = f.read().replace("\n", " ")
 
 # === Utility Functions ===
@@ -87,7 +87,7 @@ attempts = 0
 index = 1
 
 # STEP 1: Place image blocks first (30%)
-num_images = int(NUM_RECTS * 0.3)
+num_images = int(NUM_RECTS * 0.4)
 
 while len(rectangles) < num_images and attempts < MAX_ATTEMPTS:
     w = random.randint(MIN_RECT_SIZE, MAX_RECT_SIZE)
@@ -101,7 +101,7 @@ while len(rectangles) < num_images and attempts < MAX_ATTEMPTS:
     if not does_overlap_any(pos, rectangles):
         rectangles[str(index)] = {
             "type": "image",
-            "src": f"imagesGEN/{index}.jpg",
+            "src": f"imagesGEN/{random.randint(1, 127)}.jpg",
             "position": pos
         }
         index += 1
@@ -116,7 +116,7 @@ while len(rectangles) < NUM_RECTS and attempts < MAX_ATTEMPTS:
     attempts += 1
 
 # === Save Final JSON ===
-with open("rectangles.json", "w", encoding="utf-8") as f:
+with open("4.json", "w", encoding="utf-8") as f:
     json.dump(rectangles, f, indent=4, ensure_ascii=False)
 
 print(f"Saved {len(rectangles)} rectangles to rectangles.json")
