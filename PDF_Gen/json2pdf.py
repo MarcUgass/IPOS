@@ -8,7 +8,8 @@ from reportlab.lib.colors import Color
 from reportlab.platypus import Paragraph, Frame
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
-
+import fitz # PyMuPDF
+from PIL import Image
 
 import os
 
@@ -77,11 +78,11 @@ def draw_image(c, obj):
         print(f"Image file not found: {path}")
 
 
-def generate_pdf(json_file, output_file="output.pdf"):
-    with open(json_file, "r", encoding='utf-8') as f:
+def generate_pdf(json_file, ):
+    with open(json_file+"/layout.json", "r", encoding='utf-8') as f:
         data = json.load(f)
 
-    c = canvas.Canvas(output_file, pagesize=A4)
+    c = canvas.Canvas(json_file+"/document.pdf", pagesize=A4)
 
     for key in sorted(data, key=int):
         obj = data[key]
@@ -93,7 +94,25 @@ def generate_pdf(json_file, output_file="output.pdf"):
             draw_image(c, obj)
 
     c.save()
-    print(f"PDF saved as {output_file}")
+
+    # Open the PDF document
+    doc = fitz.open(json_file+"/document.pdf")
+    # Assuming it's a single page, get the first page (index 0)
+    page = doc[0]
+
+    # Render the page to a Pixmap. Higher DPI means higher resolution JPG.
+    # 150 DPI is a decent balance, 300 DPI is good for print quality.
+    pix = page.get_pixmap(dpi=150)
+
+    # Create a PIL Image from the Pixmap
+    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+    # Save the image as JPG
+    img.save(json_file+"/image.jpg")
+
+
+    # Close the document
+    doc.close()
 
 
 if __name__ == "__main__":
@@ -101,8 +120,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Generate PDF from JSON.")
     parser.add_argument("json_file", help="Path to the JSON input file")
-    parser.add_argument("--output", default="output.pdf", help="Path to the output PDF file")
-    args = parser.parse_args()
-    print(PAGE_WIDTH, PAGE_HEIGHT)
 
-    generate_pdf(args.json_file, args.output)
+    args = parser.parse_args()
+
+    generate_pdf(args.json_file)

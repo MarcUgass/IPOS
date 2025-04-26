@@ -1,2 +1,6 @@
 *.pdf
 *.json
+
+Datasets/*
+
+LayoutDetection/YOLO/*

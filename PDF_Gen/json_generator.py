@@ -1,3 +1,4 @@
+import argparse
 import random
 import json
 import math
@@ -81,42 +82,56 @@ def generate_text_block(block_id, existing_rects):
     return None  # Couldn't place without overlap
 
 # === Main Process ===
+def main():
+        
+    parser = argparse.ArgumentParser(description="Generate a document layout JSON with specified image/text ratio.")
+    parser.add_argument("output_file", type=str, help="Name of the output JSON file.")
 
-rectangles = {}
-attempts = 0
-index = 1
+    parser.add_argument("--ratio", type=float, help="Ratio of image blocks to total blocks (0.0 to 1.0).")
+    parser.add_argument("--total_blocks", type=int, default=10, help="Total number of blocks to generate (default: 10).")
 
-# STEP 1: Place image blocks first (30%)
-num_images = int(NUM_RECTS * 0.4)
+    args = parser.parse_args()
 
-while len(rectangles) < num_images and attempts < MAX_ATTEMPTS:
-    w = random.randint(MIN_RECT_SIZE, MAX_RECT_SIZE)
-    h = random.randint(MIN_RECT_SIZE, MAX_RECT_SIZE)
-    x1 = random.randint(0, PAGE_WIDTH - w)
-    y1 = random.randint(0, PAGE_HEIGHT - h)
-    x2 = x1 + w
-    y2 = y1 + h
-    pos = [x1, y1, x2, y2]
+    image_ratio = args.ratio
+    output_filename = args.output_file
+    total_blocks = args.total_blocks
+    rectangles = {}
+    attempts = 0
+    index = 1
 
-    if not does_overlap_any(pos, rectangles):
-        rectangles[str(index)] = {
-            "type": "image",
-            "src": f"imagesGEN/{random.randint(1, 127)}.jpg",
-            "position": pos
-        }
-        index += 1
-    attempts += 1
+    # STEP 1: Place image blocks first (30%)
+    num_images = int(total_blocks * image_ratio)
 
-# STEP 2: Place text blocks (remaining)
-while len(rectangles) < NUM_RECTS and attempts < MAX_ATTEMPTS:
-    block = generate_text_block(index, rectangles)
-    if block:
-        rectangles.update(block)
-        index += 1
-    attempts += 1
+    while len(rectangles) < num_images and attempts < MAX_ATTEMPTS:
+        w = random.randint(MIN_RECT_SIZE, MAX_RECT_SIZE)
+        h = random.randint(MIN_RECT_SIZE, MAX_RECT_SIZE)
+        x1 = random.randint(0, PAGE_WIDTH - w)
+        y1 = random.randint(0, PAGE_HEIGHT - h)
+        x2 = x1 + w
+        y2 = y1 + h
+        pos = [x1, y1, x2, y2]
 
-# === Save Final JSON ===
-with open("4.json", "w", encoding="utf-8") as f:
-    json.dump(rectangles, f, indent=4, ensure_ascii=False)
+        if not does_overlap_any(pos, rectangles):
+            rectangles[str(index)] = {
+                "type": "image",
+                "src": f"imagesGEN/{random.randint(1, 127)}.jpg",
+                "position": pos
+            }
+            index += 1
+        attempts += 1
 
-print(f"Saved {len(rectangles)} rectangles to rectangles.json")
+    # STEP 2: Place text blocks (remaining)
+    while len(rectangles) < total_blocks and attempts < MAX_ATTEMPTS:
+        block = generate_text_block(index, rectangles)
+        if block:
+            rectangles.update(block)
+            index += 1
+        attempts += 1
+
+    # === Save Final JSON ===
+    with open(output_filename+"/layout.json", "w", encoding="utf-8") as f:
+        json.dump(rectangles, f, indent=4, ensure_ascii=False)
+
+
+if __name__ == "__main__":
+    main()
