@@ -7,8 +7,6 @@ from reportlab.platypus import Paragraph, Frame
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 import os
-import fitz  # PyMuPDF
-from PIL import Image
 
 PAGE_WIDTH, PAGE_HEIGHT = A4
 
@@ -28,7 +26,7 @@ def draw_text(c, obj):
 
     text = obj.get("text", "")
     font = obj.get("font", "Helvetica")
-    size = obj.get("size", 12)
+    size = obj.get("size", 10)
     color = obj.get("color", [0, 0, 0])
     align = obj.get("align", "left")
     valign = obj.get("valign", "top")
@@ -74,11 +72,11 @@ def draw_image(c, obj):
         print(f"Image file not found: {path}")
 
 
-def generate_pdf(json_file):
+def generate_pdf(json_file, output_pdf_path):
     with open(json_file, "r", encoding='utf-8') as f:
         data = json.load(f)
 
-    c = canvas.Canvas("document.pdf", pagesize=A4)
+    c = canvas.Canvas(output_pdf_path, pagesize=A4)
 
     for key in sorted(data, key=int):
         obj = data[key]
@@ -91,24 +89,8 @@ def generate_pdf(json_file):
 
     c.save()
 
-    # Open the PDF document
-    doc = fitz.open("document.pdf")
-    # Assuming it's a single page, get the first page (index 0)
-    page = doc[0]
 
-    # Render the page to a Pixmap. Higher DPI means higher resolution JPG.
-    pix = page.get_pixmap(dpi=150)
-
-    # Create a PIL Image from the Pixmap
-    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-
-    # Save the image as JPG
-    img.save("image.jpg")
-
-    # Close the document
-    doc.close()
-
-
+"""
 if __name__ == "__main__":
     import argparse
 
@@ -118,3 +100,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     generate_pdf(args.json_file)
+    """
