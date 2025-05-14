@@ -4,3 +4,6 @@
 Datasets/*
 
 LayoutDetection/YOLO/*
+*.gz
+*.zip
+*.joblib
