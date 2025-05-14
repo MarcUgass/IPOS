@@ -42,7 +42,7 @@ do
 
     # --- Generate Random Parameters ---
     # Random float between 0.1 and 0.5 (using awk)
-    RANDOM_FLOAT=$(awk -v min=0.2 -v max=0.5 'BEGIN{srand(); print min+rand()*(max-min)}')
+    RANDOM_FLOAT=$(awk -v min=0.2 -v max=0.5 'BEGIN{srand(); print min+rand()*(max-min)}' | sed 's/,/./')
 
     # Random integer between 5 and 11 (using shuf)
     RANDOM_INT=$(shuf -i 5-11 -n 1)
