@@ -17,12 +17,13 @@ def flip_y(y):
 
 def draw_text(c, obj):
     x1, y1, x2, y2 = obj["position"]
+    """
     y1, y2 = flip_y(y1), flip_y(y2)
     if y1 < y2:
         y1, y2 = y2, y1  # Ensure y1 is top, y2 is bottom
-
+    """
     width = x2 - x1
-    height = y1 - y2
+    height = y2 - y1
 
     text = obj.get("text", "")
     font = obj.get("font", "Helvetica")
@@ -71,23 +72,35 @@ def draw_image(c, obj):
     else:
         print(f"Image file not found: {path}")
 
+def change_coordinates(obj, scale_height, scale_width):
+    x1, y1, x2, y2 = obj["position"]
+    obj["position"] = [int(x1 * scale_width), int(y1 * scale_height), int(x2 * scale_width), int(y2 * scale_height)]
+    return obj
 
-def generate_pdf(json_file, output_pdf_path):
+
+def scale(image_height, image_width):
+    scale_height, scale_width = PAGE_HEIGHT/image_height, PAGE_WIDTH/image_width
+    return scale_height, scale_width
+
+def generate_pdf(json_file, output_pdf_path, image_height, image_width):
     with open(json_file, "r", encoding='utf-8') as f:
         data = json.load(f)
 
     c = canvas.Canvas(output_pdf_path, pagesize=A4)
 
+    scale_height, scale_width = scale(image_height, image_width)
+
     for key in sorted(data, key=int):
         obj = data[key]
         obj_type = obj.get("type")
-
+        obj = change_coordinates(obj, scale_height, scale_width)
         if obj_type == "text":
             draw_text(c, obj)
         elif obj_type == "image":
             draw_image(c, obj)
 
     c.save()
+    print("saved")
 
 
 """

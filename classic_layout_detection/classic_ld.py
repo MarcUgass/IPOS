@@ -25,7 +25,7 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
 
     median_filter = ndimage.median_filter(img, size=30)
 
-    filtered = img - median_filter # Esta variable no se usa luego, ¿es para debug?
+    filtered = img - median_filter
 
     binary = img > 150
     binary = np.abs(binary -1)
@@ -35,10 +35,10 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
 
     kernel5 = np.array([[1], [1], [1], [1], [1]]) 
     filtered_image = dilatation.astype(np.uint8)
-    dilated_image = cv2.dilate(filtered_image, kernel5, iterations=2)
+    dilated_image = cv2.dilate(filtered_image, kernel5, iterations=3)
 
     kernel2 = np.array([[1], [1]])
-    dilated_image_2 = cv2.dilate(dilated_image, kernel2, iterations=4)
+    dilated_image_2 = cv2.dilate(dilated_image, kernel2, iterations=8)
 
     kernel_horitzontal = np.array([[1, 1, 1, 1]])
     dilated = cv2.dilate(dilated_image_2, kernel_horitzontal, iterations=8)
@@ -63,10 +63,9 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
 
     filtered_hull_coordinates_list_for_json = [] #
 
-    if not hull_coordinates_list: # Añadido para evitar errores si no hay contornos
+    if not hull_coordinates_list:
         print("ClassicLD: No hulls found to process.")
     else:
-        # Inicializar con el primer elemento si existe
         last_x1 = hull_coordinates_list[0]["x1"]
         last_y1 = hull_coordinates_list[0]["y1"]
         last_x2 = hull_coordinates_list[0]["x2"]

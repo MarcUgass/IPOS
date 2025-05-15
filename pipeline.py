@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import shutil
+import cv2 as cv2
 
 
 from DLT import dlt
@@ -88,9 +89,13 @@ def run_pipeline(input_image_path: str,
     print("\n[Paso 3: Generación de PDF y Previsualización]")
     final_pdf_output_path = os.path.join(output_base_dir, FINAL_PDF_NAME)
 
-    result_paths = generate.generate_pdf(
+    image = cv2.imread(input_image_path)
+    image_height, image_widht, channels = image.shape
+    generate.generate_pdf(
         final_layout_json_path,
         final_pdf_output_path,
+        image_height,
+        image_widht
     )
 
     print("\n--- Pipeline completado. ---")
