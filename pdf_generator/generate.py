@@ -14,20 +14,18 @@ PAGE_WIDTH, PAGE_HEIGHT = A4
 def flip_y(y):
     return PAGE_HEIGHT - y
 
-
 def draw_text(c, obj):
     x1, y1, x2, y2 = obj["position"]
-    """
     y1, y2 = flip_y(y1), flip_y(y2)
     if y1 < y2:
         y1, y2 = y2, y1  # Ensure y1 is top, y2 is bottom
-    """
+
     width = x2 - x1
-    height = y2 - y1
+    height = y1 - y2
 
     text = obj.get("text", "")
     font = obj.get("font", "Helvetica")
-    size = obj.get("size", 10)
+    size = obj.get("size", 12)
     color = obj.get("color", [0, 0, 0])
     align = obj.get("align", "left")
     valign = obj.get("valign", "top")
