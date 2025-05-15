@@ -64,11 +64,11 @@ def perspective_transform(image, pts):
 def find_document_contour(image):
  
     ratio = image.shape[0] / 500.0
-    orig = image.copy()
-    image = cv2.resize(image, (int(image.shape[1] / ratio), 500))
+
+    resized_image = cv2.resize(image, (int(image.shape[1] / ratio), 500))
 
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
     edged = cv2.Canny(gray, 75, 200)
 
@@ -103,8 +103,56 @@ def find_document_contour(image):
     return screenCnt.reshape(4, 2) * ratio
 
 
-# --- Main Execution ---
-if __name__ == "__main__":
+def process_document_perspective(input_image_path: str, output_image_path: str) -> str | None:
+    """
+    Loads an image, finds document contour, applies perspective transform, and saves it.
+    Returns the path to the warped image if successful, None otherwise.
+    """
+    if not os.path.exists(input_image_path):
+        print(f"Error DLT: Input image not found at {input_image_path}")
+        return None
+
+    output_dir = os.path.dirname(output_image_path)
+    if output_dir and not os.path.exists(output_dir):
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+        except OSError as e:
+            print(f"Error DLT: creating output directory {output_dir}: {e}")
+            return None
+
+    image = cv2.imread(input_image_path)
+    if image is None:
+        print(f"Error DLT: Could not load image from {input_image_path}")
+        return None
+
+    doc_contour_points = find_document_contour(image)
+
+    if doc_contour_points is None:
+        print("Error DLT: Failed to find document contour.")
+        return None
+
+    # print("STEP 3: Apply perspective transform") # Logging en pipeline principal
+    # Pasamos image.copy() para no modificar la imagen original en memoria si se va a reusar
+    warped_image = perspective_transform(image.copy(), doc_contour_points)
+
+    if warped_image is None:
+        print("Error DLT: Failed to apply perspective transform.")
+        return None
+
+    # print(f"STEP 4: Saving warped image to {output_image_path}") # Logging en pipeline
+    # El redimensionamiento puede ser opcional o configurable
+    # warped_image_resized = cv2.resize(warped_image, (1192, 1682)) #Podrías pasar esto como arg
+    success = cv2.imwrite(output_image_path, warped_image) # Guardar warped_image o warped_image_resized
+    if not success:
+        print(f"Error DLT: Failed to save warped image to {output_image_path}")
+        return None
+
+    print(f"DLT: Warped image saved to {output_image_path}")
+    return output_image_path
+
+
+
+"""if __name__ == "__main__":
     # --- Argument Parsing ---
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--image", required=True, help="Path to the input image")
@@ -169,4 +217,4 @@ if __name__ == "__main__":
     print("Press any key to close windows.")
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
+"""

@@ -10,3 +10,5 @@ LayoutDetection/YOLO/*
 
 Ocr_LeNett/
 *.csv
+
+**/__pycache__/

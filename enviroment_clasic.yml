@@ -1,0 +1,16 @@
+name: doc_processing_classic
+channels:
+  - conda-forge
+  - defaults 
+dependencies:
+  - python=3.10
+  - pip
+
+  - opencv >=4.5       # OpenCV
+  - numpy >=1.20       # NumPy
+  - scipy >=1.7        # SciPy (para ndimage)
+
+  - reportlab >=3.6    # Para generar PDF
+  - pymupdf >=1.19     # Para PyMuPDF (Fitz) - previsualización de PDF
+  - pillow >=8.4       # Dependencia de ReportLab, PyMuPDF y a veces OpenCV
+  
