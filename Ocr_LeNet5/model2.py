@@ -10,8 +10,8 @@ from sklearn.model_selection import train_test_split # Para dividir train en tra
 # --- Carga de Datos ---
 # Asumiendo que los CSV no tienen header. Si lo tienen, ajusta 'header=None'.
 try:
-    train_df = pd.read_csv('emnist-byclass-train.csv', header=None)
-    test_df = pd.read_csv('emnist-byclass-test.csv', header=None)
+    train_df = pd.read_csv('emnist-byclass-train_reducido.csv', header=None)
+    test_df = pd.read_csv('emnist-byclass-test_reducido.csv', header=None)
 except FileNotFoundError:
     print("Error: Asegúrate de que 'emnist-byclass-train.csv' y 'emnist-byclass-test.csv' están en el mismo directorio que el script.")
     exit()
@@ -133,7 +133,7 @@ criterion = nn.CrossEntropyLoss() # Incluye Softmax
 optimizer = optim.Adam(model.parameters(), lr=0.001) # Adam es un buen optimizador por defecto
 
 # --- Bucle de Entrenamiento ---
-epochs = 15 # Keras usaba 40, puedes ajustarlo. Reducido para una prueba más rápida.
+epochs = 30 # Keras usaba 40, puedes ajustarlo. Reducido para una prueba más rápida.
 # El original de Keras usaba steps_per_epoch=10.
 # Aquí, cada epoch procesará todo el dataset.
 
@@ -217,3 +217,12 @@ final_output = np.concatenate([index_reshaped, y_pred_labels_reshaped], axis = 1
 output_filename = "emnist_pytorch_predictions.csv"
 np.savetxt(output_filename, final_output, delimiter=",", fmt='%d', header='ImageId,Label', comments='')
 print(f"Predicciones guardadas en {output_filename}")
+
+MODEL_SAVE_PATH = "lenet5_emnist_pytorch.pth"
+torch.save(model.state_dict(), MODEL_SAVE_PATH)
+print(f"Modelo entrenado guardado en {MODEL_SAVE_PATH}")
+
+# Guardar también los parámetros de normalización, ya que son necesarios para preprocesar nuevas imágenes
+PREPROCESSING_PARAMS_PATH = "preprocessing_params.npz"
+np.savez(PREPROCESSING_PARAMS_PATH, mean_px=mean_px, std_px=std_px)
+print(f"Parámetros de preprocesamiento guardados en {PREPROCESSING_PARAMS_PATH}")

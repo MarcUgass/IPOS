@@ -12,3 +12,5 @@ Ocr_LeNett/
 *.csv
 
 **/__pycache__/
+
+out

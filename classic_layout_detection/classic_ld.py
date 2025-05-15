@@ -4,6 +4,23 @@ from scipy import ndimage
 import os
 import json
 
+def characters_bbox(image):
+    binary_for_contours = image * 255
+    binary_for_contours = binary_for_contours.astype(np.uint8)
+    contours, hierarchy = cv2.findContours(binary_for_contours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    characters_bbox = []
+    for i, cnt in enumerate(contours):
+        hull = cv2.convexHull(cnt)
+        x_rect, y_rect, w_rect, h_rect = cv2.boundingRect(hull)
+        characters_bbox.append(binary_for_contours[x_rect:(x_rect + w_rect), y_rect:(y_rect + h_rect)])
+        
+    text = "prueba"
+
+
+    return text
+
+
 def detect_layout_classic(input_image_path: str, output_json_path: str, output_debug_image_path: str | None = None) -> str | None:
     """
     Processes an image using classic computer vision techniques to find layout boxes.
@@ -109,9 +126,14 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
                     "position": [x1, y1, x2, y2], # [x1, y1, x2, y2]
                     # "len_contours": len_contours # Información de debug
                 """
+                bbox = image[fy1:fy2, fx1:fx2]
+                #cv2.imwrite('out/chracter' + hull_info["id"] + '.jpeg', bbox)
+
+                #recordar: del bbox de sortida descartar coses rares per poder fer la separacio de caracters
+                out_text = "Prueba" #characters_bbox(bbox)
                 item_for_json = {
                     "type": "text", # Asumimos todo es texto para ReportLab por ahora
-                    "text": "prueba",
+                    "text": out_text,
                     "font": "Helvetica", # Default, podría ser configurable
                     "size": 10,          # Default
                     "color": [0, 0, 0],  # Default
@@ -121,6 +143,7 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
                 }
                 filtered_hull_coordinates_list_for_json.append(item_for_json)
                 cv2.rectangle(output_image_bounding_boxes_filtered, (fx1, fy1), (fx2, fy2), (0, 0, 255), 1)
+                
             # La parte 'else' de 'is_last' de tu código original parece que intentaba fusionar,
             # pero tenía un error al hacer pop() sin verificar si la lista estaba vacía
             # y luego append() sin la info de 'len_contours'.

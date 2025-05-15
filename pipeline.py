@@ -30,7 +30,6 @@ def run_pipeline(input_image_path: str,
     # Crear directorio de salida base si no existe
     os.makedirs(output_base_dir, exist_ok=True)
 
-    # --- Paso 1: Transformación de Perspectiva (DLT) ---
     print("\n[Paso 1: Transformación de Perspectiva]")
     warped_image_output_path = os.path.join(output_base_dir, WARPED_IMAGE_NAME)
     
@@ -44,14 +43,11 @@ def run_pipeline(input_image_path: str,
         return
     print(f"Imagen transformada guardada en: {processed_warped_image_path}")
 
-    # --- Paso 2: Detección de Layout (Condicional) ---
     print("\n[Paso 2: Detección de Layout]")
     layout_json_output_path = os.path.join(output_base_dir, LAYOUT_JSON_NAME)
     final_layout_json_path = None
 
     if layout_method == "layout_parser":
-        # Asegurarse de que el modelo LP se inicializa una vez
-        # (detector_lp.py ya maneja la inicialización global del modelo)
         """
         debug_lp_path = os.path.join(output_base_dir, DEBUG_IMG_LP_NAME) if generate_debug_images else None
         final_layout_json_path = lay.detect_layout_lp(
@@ -67,13 +63,6 @@ def run_pipeline(input_image_path: str,
             output_json_path=layout_json_output_path,
             output_debug_image_path=debug_classic_path
         )
-        # IMPORTANTE: El JSON de classic_ld necesita ser adaptado para generator.py
-        # o generator.py modificado para entender el formato de classic_ld.
-        # Esta implementación asume que PUEDE producir un JSON compatible,
-        # pero mi refactorización de detector_classic.py lo guarda en un formato
-        # que necesitaría una conversión para ser usado por generator.py.
-        # Si usas "classic", es probable que el siguiente paso falle o dé resultados inesperados
-        # sin esa adaptación.
         print("ADVERTENCIA: El método 'classic' puede requerir adaptación del JSON para el generador de PDF.")
 
     else:
@@ -121,7 +110,6 @@ if __name__ == "__main__":
         action="store_true",
         help="Generar imágenes de depuración para los pasos de layout."
     )
-    # Podrías añadir un argumento para un archivo de configuración JSON aquí.
 
     args = parser.parse_args()
 
