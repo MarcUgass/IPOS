@@ -4,6 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image, ImageOps # Pillow para manipulación de imágenes
 import argparse # Para argumentos de línea de comandos
+import os
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+EMNIST_BYCLASS_MAPPING = {i: str(i) for i in range(10)} # 0-9
+for i in range(26):
+    EMNIST_BYCLASS_MAPPING[10 + i] = chr(ord('A') + i) # A-Z
+    EMNIST_BYCLASS_MAPPING[10 + 26 + i] = chr(ord('a') + i) # a-z
 
 # --- Definición de la Arquitectura del Modelo LeNet5PyTorch (debe ser idéntica) ---
 class LeNet5PyTorch(nn.Module):
@@ -32,7 +40,7 @@ class LeNet5PyTorch(nn.Module):
         return x
 
 # --- Nueva Función de Preprocesamiento para una imagen externa ---
-def preprocess_external_image(image_path, mean_px, std_px, invert=False):
+def preprocess_external_image(img, mean_px, std_px, invert=False):
     """
     Carga, redimensiona, preprocesa y normaliza una imagen externa para el modelo EMNIST.
     Args:
@@ -43,15 +51,6 @@ def preprocess_external_image(image_path, mean_px, std_px, invert=False):
     Returns:
         torch.Tensor: Tensor de imagen listo para el modelo.
     """
-    try:
-        img = Image.open(image_path).convert('L') # Cargar y convertir a escala de grises
-    except FileNotFoundError:
-        print(f"Error: No se encontró la imagen en {image_path}")
-        return None
-    except Exception as e:
-        print(f"Error al cargar la imagen {image_path}: {e}")
-        return None
-
     # Redimensionar a 28x28. Usar ANTIALIAS para mejor calidad al reducir.
     # Pillow >= 9.0.0 usa Resampling.LANCZOS en lugar de ANTIALIAS
     try:
@@ -79,8 +78,9 @@ def preprocess_external_image(image_path, mean_px, std_px, invert=False):
     # img = np.rot90(img, k=1) # Rotar 90 grados en sentido antihorario
     # img = np.fliplr(img)     # Voltear horizontalmente
     # Aplicamos lo mismo aquí:
-    img_np_processed = np.rot90(img_np, k=1)
-    img_np_processed = np.fliplr(img_np_processed)
+    img_np_processed = np.rot90(img_np, k=2)
+    #img_np_processed = np.fliplr(img_np)
+
     
     # Visualización de la imagen DESPUÉS de la rotación/volteo de EMNIST (opcional)
     plt.imshow(img_np_processed, cmap='gray')
@@ -109,30 +109,63 @@ def predict_single_image(model, image_tensor, device):
         confidence, predicted_idx = torch.max(probabilities, 1)
     return predicted_idx.item(), confidence.item()
 
-# Mapeo de índices a caracteres para EMNIST ByClass
-# Debes crear este mapeo basado en el archivo 'emnist-byclass-mapping.txt'
-# El archivo de mapeo tiene formato: <class_index> <ASCII_code>
-# Ejemplo (primeras líneas podrían ser):
-# 0 48 (para '0')
-# 1 49 (para '1')
-# ...
-# 9 57 (para '9')
-# 10 65 (para 'A')
-# 11 66 (para 'B')
-# ...
-# 35 90 (para 'Z')
-# 36 97 (para 'a')
-# ...
-# 61 122 (para 'z')
-# Puedes generar este diccionario a partir de ese archivo.
-# Por ahora, usaré un ejemplo placeholder. ¡DEBES AJUSTARLO!
-EMNIST_BYCLASS_MAPPING = {i: str(i) for i in range(10)} # 0-9
-for i in range(26):
-    EMNIST_BYCLASS_MAPPING[10 + i] = chr(ord('A') + i) # A-Z
-    EMNIST_BYCLASS_MAPPING[10 + 26 + i] = chr(ord('a') + i) # a-z
 
-# Verifica tu archivo de mapeo para que coincida exactamente con las 62 clases.
+def ocr_lenet5(input_image, invert=True):
+    MODEL_LOAD_PATH = os.path.join(CURRENT_DIR,"lenet5_emnist_pytorch.pth")
+    PREPROCESSING_PARAMS_PATH = os.path.join(CURRENT_DIR, "preprocessing_params.npz")
+    NUM_CLASSES = 62 # EMNIST ByClass
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Usando dispositivo para predicción: {device}")
+
+    # --- Cargar Parámetros de Preprocesamiento ---
+    try:
+        params = np.load(PREPROCESSING_PARAMS_PATH)
+        mean_px_loaded = params['mean_px']
+        std_px_loaded = params['std_px']
+    except FileNotFoundError:
+        print(f"Error: Archivo de parámetros de preprocesamiento '{PREPROCESSING_PARAMS_PATH}' no encontrado.")
+        print("Asegúrate de haber entrenado el modelo (model2.py) y guardado los parámetros primero.")
+        exit()
+    
+    print(f"Parámetros de preprocesamiento cargados: mean={mean_px_loaded:.4f}, std={std_px_loaded:.4f}")
+
+    # --- Cargar el  ---
+    loaded_model = LeNet5PyTorch(num_classes=NUM_CLASSES)
+    try:
+        loaded_model.load_state_dict(torch.load(MODEL_LOAD_PATH, map_location=device))
+    except FileNotFoundError:
+        print(f"Error: Archivo del modelo '{MODEL_LOAD_PATH}' no encontrado.")
+        print("Asegúrate de haber entrenado y guardado el modelo primero.")
+        exit()
+    except Exception as e:
+        print(f"Error cargando el estado del modelo: {e}")
+        exit()
+
+    loaded_model.to(device)
+    loaded_model.eval()
+    print("Modelo cargado y configurado para evaluación.")
+
+    # --- Preprocesar la imagen de entrada ---
+    input_tensor = preprocess_external_image(input_image, mean_px_loaded, std_px_loaded, invert=invert)
+
+    if input_tensor is None:
+        exit() # Error durante el preprocesamiento
+
+    # --- Realizar la predicción ---
+    predicted_class_index, confidence = predict_single_image(loaded_model, input_tensor, device)
+    
+    predicted_char = EMNIST_BYCLASS_MAPPING.get(predicted_class_index, "Índice Desconocido")
+
+    print(f"\n--- Predicción ---")
+    print(f"Índice de clase predicho: {predicted_class_index}")
+    print(f"Carácter predicho: {predicted_char}")
+    print(f"Confianza: {confidence*100:.2f}%")
+
+    return predicted_char
+
+
+"""
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Predecir un carácter EMNIST desde una imagen.")
     parser.add_argument("image_path", type=str, help="Ruta al archivo de imagen del carácter.")
@@ -197,3 +230,6 @@ if __name__ == "__main__":
     plt.imshow(final_input_view, cmap='gray')
     plt.title(f"Entrada final al modelo\nPredicción: {predicted_char} ({confidence*100:.2f}%)")
     plt.show()
+    
+
+    """

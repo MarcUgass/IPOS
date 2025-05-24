@@ -77,6 +77,8 @@ def change_coordinates(obj, scale_height, scale_width):
 
 
 def scale(image_height, image_width):
+    print("PH: ", PAGE_HEIGHT,"PW: ", PAGE_WIDTH )
+    print("IH: ", PAGE_HEIGHT,"IW: ", PAGE_WIDTH )
     scale_height, scale_width = PAGE_HEIGHT/image_height, PAGE_WIDTH/image_width
     return scale_height, scale_width
 
