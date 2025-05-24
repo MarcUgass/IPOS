@@ -3,19 +3,71 @@ import numpy as np
 from scipy import ndimage
 import os
 import json
+import sys
+sys.path.append("../")
+from Ocr_LeNet5.ocr_lenet5 import ocr_lenet5
 
-def characters_bbox(image):
-    binary_for_contours = image * 255
-    binary_for_contours = binary_for_contours.astype(np.uint8)
-    contours, hierarchy = cv2.findContours(binary_for_contours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+sys.path.append("../Ocr_LeNet5/preprocessing_params.npz")
 
-    characters_bbox = []
+def character_bbox(image):
+    
+    binary = image > 150
+    binary = np.abs(binary -1)
+
+    kernel2 = np.array([[1], [1], [1]])
+    filtered_image = binary.astype(np.uint8)
+    dilated_image = cv2.dilate(filtered_image, kernel2, iterations=2)
+
+    contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    characters = []
+    
     for i, cnt in enumerate(contours):
         hull = cv2.convexHull(cnt)
         x_rect, y_rect, w_rect, h_rect = cv2.boundingRect(hull)
-        characters_bbox.append(binary_for_contours[x_rect:(x_rect + w_rect), y_rect:(y_rect + h_rect)])
+        characters.append(image[y_rect:(y_rect + h_rect), x_rect:(x_rect + w_rect)])
+
         
-    text = "prueba"
+    characters = sorted(characters, key=lambda x: x.shape[1], reverse=False)
+    for i, char in enumerate(characters):
+        char = cv2.resize(char, (28, 28))
+        print(char)
+        char = np.expand_dims(char, axis=0)
+        char = np.expand_dims(char, axis=0)
+        char = char.astype(np.float32)
+        char = (char - 127.5) / 127.5
+        pred = ocr_lenet5(char)
+        text.append(chr(pred[0]))
+
+    return text
+
+def words_bbox(image):
+    binary = image > 150
+    binary = np.abs(binary -1)
+    #binary_for_contours = image * 255
+    #binary_for_contours = image.astype(np.uint8)
+
+    words_bbox = []
+    text = []
+    kernel5 = np.array([[1, 1, 1, 1, 1]]) 
+    filtered_image = binary.astype(np.uint8)
+    dilated_image = cv2.dilate(filtered_image, kernel5, iterations=3)
+
+    kernel2 = np.array([[1], [1]]) 
+    dilated_image = cv2.dilate(dilated_image, kernel2, iterations=2)
+
+    contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+
+    
+    for i, cnt in enumerate(contours):
+        hull = cv2.convexHull(cnt)
+        x_rect, y_rect, w_rect, h_rect = cv2.boundingRect(hull)
+        word = image[y_rect:(y_rect + h_rect), x_rect:(x_rect + w_rect)]
+        words_bbox.append(word)
+        cv2.imwrite(f'out/word{i}.jpeg', word)
+        word_ocr = character_bbox(word)
+        final_word = " " + word_ocr
+        text.append(final_word)
 
 
     return text
@@ -52,7 +104,7 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
 
     kernel5 = np.array([[1], [1], [1], [1], [1]]) 
     filtered_image = dilatation.astype(np.uint8)
-    dilated_image = cv2.dilate(filtered_image, kernel5, iterations=3)
+    dilated_image = cv2.dilate(filtered_image, kernel5, iterations=4)
 
     kernel2 = np.array([[1], [1]])
     dilated_image_2 = cv2.dilate(dilated_image, kernel2, iterations=8)
@@ -108,16 +160,6 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
 
         if not is_marginal:
             if is_last == 1: # Siempre True con la lógica actual
-                # bbox_binary = dilatation[fy1:fy2, fx1:fx2] # Esto es para OCR, no para el layout JSON
-                # bbox = bbox_binary.astype(np.uint8) * 255
-                # bbox2.append(bbox)
-                # contours_bbox, _ = cv2.findContours(bbox, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                # len_contours = len(contours_bbox)
-
-                # Adaptación para el JSON:
-                # Necesitarías convertir esto al formato que espera `generator.py`
-                # Aquí simplemente guardamos la info del bounding box.
-                # El "text" y "type" no se extraen aquí.
                 """
                  items antes:
                     "id": hull_info['id'], # Usar un ID único
@@ -127,6 +169,7 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
                     # "len_contours": len_contours # Información de debug
                 """
                 bbox = image[fy1:fy2, fx1:fx2]
+                out_text = words_bbox(bbox)
                 #cv2.imwrite('out/chracter' + hull_info["id"] + '.jpeg', bbox)
 
                 #recordar: del bbox de sortida descartar coses rares per poder fer la separacio de caracters
@@ -143,6 +186,7 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
                 }
                 filtered_hull_coordinates_list_for_json.append(item_for_json)
                 cv2.rectangle(output_image_bounding_boxes_filtered, (fx1, fy1), (fx2, fy2), (0, 0, 255), 1)
+                print(item_for_json)
                 
             # La parte 'else' de 'is_last' de tu código original parece que intentaba fusionar,
             # pero tenía un error al hacer pop() sin verificar si la lista estaba vacía
@@ -158,15 +202,14 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
         str(i): item for i, item in enumerate(filtered_hull_coordinates_list_for_json)
     }
 
-    
-    
     try:
         output_dir = os.path.dirname(output_json_path)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir, exist_ok=True)
         with open(output_json_path, 'w') as f:
             json.dump(output_data_for_json, f, indent=4)
-            cv2.imwrite(output_dir + 'bounding_box.jpeg', output_image_bounding_boxes_filtered)
+            cv2.imwrite(output_dir + '/bounding_box.jpeg', output_image_bounding_boxes_filtered)
+            cv2.imwrite(output_dir + '/dilatation.jpeg', binary_for_contours)
         print(f"ClassicLD: Layout data saved to {output_json_path}")
     except IOError as e:
         print(f"Error ClassicLD: Could not write JSON to {output_json_path}: {e}")
@@ -182,3 +225,18 @@ def detect_layout_classic(input_image_path: str, output_json_path: str, output_d
             print(f"ClassicLD: Debug image saved to {output_debug_image_path}")
 
     return output_json_path
+
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate PDF from JSON.")
+    parser.add_argument("image", help="")
+
+    args = parser.parse_args()
+
+    image = cv2.imread(args.image)
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    text = words_bbox(img)
